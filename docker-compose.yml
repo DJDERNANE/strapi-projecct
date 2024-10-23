@@ -1,0 +1,38 @@
+version: '3.8'
+services:
+  db: 
+    image: mysql:latest
+    environment: 
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: strapi
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+    ports:
+      - "3306:3306" 
+    volumes:
+      - mysql_data:/var/lib/mysql  # Persist MySQL data
+
+  admindb:
+    image: phpmyadmin/phpmyadmin
+    container_name: admindb
+    depends_on:
+      - db  # Ensure phpMyAdmin starts after MySQL
+    environment:
+      - PMA_HOST=db  # This points to your MySQL service
+      - PMA_USER=user
+      - PMA_PASSWORD=password
+    ports:
+      - "8080:80"  # Expose phpMyAdmin on port 8080
+  strapi:
+    build:
+      context: . # Path to your Express app's Dockerfile
+    container_name: strapi
+    ports:
+      - "1337:1337"  # Expose Express on port 3000
+    depends_on:
+      - db  # Ensure Express starts after MySQL
+    volumes:
+      - .:/usr/src/app  # Bind mount the current directory to the container
+      - /usr/src/app/node_modules  # Ignore the node_modules folder (use container's)
+volumes:
+  mysql_data:
